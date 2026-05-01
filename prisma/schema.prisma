@@ -16,9 +16,12 @@ datasource db {
 model Expense {
   id             String   @id @default(uuid())
   idempotencyKey String   @unique
+  userId         String
   amount         Int
   category       String
   description    String
   date           DateTime
   createdAt      DateTime @default(now())
+
+  @@index([userId])
 }

@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { idempotencyKey, amount, category, description, date } = body;
+    const { idempotencyKey, userId, amount, category, description, date } = body;
 
-    if (!idempotencyKey || typeof amount !== 'number' || !category || !description || !date) {
+    if (!idempotencyKey || !userId || typeof amount !== 'number' || !category || !description || !date) {
       return NextResponse.json({ error: 'Missing required fields or invalid data types' }, { status: 400 });
     }
 
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const newExpense = await prisma.expense.create({
       data: {
         idempotencyKey,
+        userId,
         amount,
         category,
         description,
@@ -47,6 +48,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sort = searchParams.get('sort');
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
 
     // default newest first
     let orderBy: any = { date: 'desc' }; 
@@ -57,7 +63,10 @@ export async function GET(request: Request) {
       orderBy = { date: 'desc' };
     }
 
-    const where = category ? { category } : {};
+    const where: any = { userId };
+    if (category) {
+      where.category = category;
+    }
 
     const expenses = await prisma.expense.findMany({
       where,

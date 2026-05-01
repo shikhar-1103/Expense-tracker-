@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function ExpenseForm({ onExpenseAdded }: { onExpenseAdded: () => void }) {
+export default function ExpenseForm({ onExpenseAdded, userId }: { onExpenseAdded: () => void; userId: string }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -33,6 +33,7 @@ export default function ExpenseForm({ onExpenseAdded }: { onExpenseAdded: () => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idempotencyKey,
+          userId,
           amount: Math.round(parsedAmount * 100), // Convert to cents
           category,
           description,

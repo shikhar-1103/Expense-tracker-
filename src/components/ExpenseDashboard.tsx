@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import ExpenseForm from './ExpenseForm';
 import ExpenseList from './ExpenseList';
@@ -8,24 +8,47 @@ import ExpenseSummary from './ExpenseSummary';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function getUserId(): string {
+  if (typeof window === 'undefined') return '';
+  let userId = localStorage.getItem('expense_tracker_user_id');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('expense_tracker_user_id', userId);
+  }
+  return userId;
+}
+
 export default function ExpenseDashboard() {
   const [category, setCategory] = useState('');
   const [sort, setSort] = useState('date_desc');
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    setUserId(getUserId());
+  }, []);
 
   const queryParams = new URLSearchParams();
   if (category) queryParams.set('category', category);
   if (sort) queryParams.set('sort', sort);
+  if (userId) queryParams.set('userId', userId);
 
-  const { data: expenses, error, mutate } = useSWR(`/api/expenses?${queryParams.toString()}`, fetcher);
+  const { data: expenses, error, mutate } = useSWR(
+    userId ? `/api/expenses?${queryParams.toString()}` : null,
+    fetcher
+  );
 
   const handleExpenseAdded = () => {
     mutate(); // Revalidate SWR cache
   };
 
+  if (!userId) {
+    return <div className="text-center text-gray-500 py-12">Loading...</div>;
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-1">
-        <ExpenseForm onExpenseAdded={handleExpenseAdded} />
+        <ExpenseForm onExpenseAdded={handleExpenseAdded} userId={userId} />
       </div>
       <div className="md:col-span-2 space-y-6">
         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
