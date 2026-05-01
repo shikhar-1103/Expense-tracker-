@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Full-Stack Expense Tracker
 
-## Getting Started
+This is a minimal full-stack Expense Tracker built for the Fenmo assignment.
 
-First, run the development server:
+## Tech Stack
+- **Framework**: Next.js (App Router)
+- **Database**: SQLite
+- **ORM**: Prisma
+- **Styling**: Tailwind CSS
+- **Data Fetching**: SWR (Client-side)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Key Design Decisions
+- **Monorepo Architecture**: I chose Next.js App Router to co-locate the backend API routes and the frontend React components in a single, easily deployable repository. This eliminates CORS issues and simplifies the build process.
+- **SQLite + Prisma**: SQLite was chosen as the persistence layer because it runs locally without any extra installation steps (like Postgres or MySQL). Prisma provides a robust, type-safe interface to the database.
+- **Idempotency**: To handle the requirement that "the API should behave correctly even if the client retries the same request," the frontend generates a UUID (`idempotencyKey`) on form submission. The backend checks this key before creating an expense, ensuring no duplicate charges occur during network retries or accidental double-clicks.
+- **Money Handling**: Amounts are stored as integers (cents) in the database to prevent floating-point inaccuracies when calculating sums.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Trade-offs and What I Intentionally Did Not Do
+- **Automated Tests**: Given the timebox, I focused entirely on building a robust idempotency system, a clean UI, and a strongly-typed schema rather than setting up Jest/Vitest.
+- **Pagination**: The `GET /expenses` endpoint currently returns all expenses matching the filter. In a real-world scenario with thousands of expenses, cursor-based pagination would be necessary.
+- **Authentication**: Authentication and per-user data isolation were intentionally omitted to keep the app minimal.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to Run Locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Initialize the database and run migrations:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
